@@ -6,9 +6,10 @@
     <title>Spotify-Style Synced Lyrics</title>
     <style>
         body { font-family: Arial, sans-serif; background: black; color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        #lyrics-container { width: 90%; max-width: 600px; height: 60vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        #lyrics p { font-size: 24px; line-height: 1.8; transition: color 0.3s ease-in-out; }
-        .highlight { color: #1DB954; font-size: 28px; font-weight: bold; }
+        #lyrics-container { width: 90%; max-width: 600px; height: 60vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; text-align: center; position: relative; }
+        #lyrics { display: flex; flex-direction: column; align-items: center; transition: transform 0.5s ease-in-out; }
+        #lyrics p { font-size: 24px; line-height: 1.8; margin: 5px 0; transition: color 0.3s ease-in-out; }
+        .highlight { color: #1DB954; font-size: 32px; font-weight: bold; }
         .past { color: #888; }
     </style>
 </head>
@@ -50,6 +51,9 @@
         function displayLyrics() {
             const lyricsDiv = document.getElementById('lyrics');
             lyricsDiv.innerHTML = lyrics.map(l => `<p>${l.text}</p>`).join("");
+            
+            // Make sure the first lyric is visible
+            highlightLine(true);
         }
 
         function startLyrics() {
@@ -68,7 +72,7 @@
             requestAnimationFrame(updateLyrics);
         }
 
-        function highlightLine() {
+        function highlightLine(initial = false) {
             const lyricsDiv = document.getElementById('lyrics');
             const lines = lyricsDiv.getElementsByTagName("p");
 
@@ -81,10 +85,15 @@
                 }
             }
 
-            // Auto-scroll
-            const container = document.getElementById("lyrics-container");
-            const lineHeight = lines[currentLine]?.offsetHeight || 30;
-            container.scrollTo({ top: lineHeight * currentLine - container.clientHeight / 2, behavior: "smooth" });
+            // Auto-scroll, but start from the first line properly
+            if (!initial && lines[currentLine]) {
+                const container = document.getElementById("lyrics-container");
+                const containerHeight = container.clientHeight;
+                const lineHeight = lines[currentLine].offsetHeight;
+                const scrollPosition = lines[currentLine].offsetTop - containerHeight / 2 + lineHeight / 2;
+
+                container.scrollTo({ top: scrollPosition, behavior: "smooth" });
+            }
         }
 
         // Load LRC file when the page loads
