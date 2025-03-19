@@ -20,12 +20,13 @@
             width: 90%; 
             max-width: 600px; 
             height: 60vh; 
-            overflow-y: hidden; 
+            overflow: hidden; 
             display: flex; 
             flex-direction: column; 
-            justify-content: center; 
+            align-items: center; 
             text-align: center; 
-            position: relative;
+            position: relative; 
+            padding-top: 30vh; /* Push lyrics down so first one is visible */
         }
         #lyrics { 
             display: flex; 
@@ -54,87 +55,4 @@
 </head>
 <body>
 
-    <div id="lyrics-container">
-        <div id="lyrics">Loading lyrics...</div>
-    </div>
-
-    <script>
-        let lyrics = [];
-        let currentLine = 0;
-        let startTime = 0;
-        let firstLyricDelay = true; // Prevents instant scrolling at the beginning
-
-        function loadLRC() {
-            fetch("lyrics.lrc")
-                .then(response => response.text())
-                .then(text => {
-                    lyrics = parseLRC(text);
-                    displayLyrics();
-                    setTimeout(startLyrics, 2000); // 2-second delay before scrolling starts
-                })
-                .catch(error => {
-                    document.getElementById('lyrics').innerText = "Error loading lyrics.";
-                    console.error("Error loading LRC file:", error);
-                });
-        }
-
-        function parseLRC(text) {
-            return text.trim().split("\n").map(line => {
-                const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-                if (match) {
-                    return { time: parseFloat(match[1]) * 60 + parseFloat(match[2]), text: match[3].trim() };
-                }
-                return null;
-            }).filter(Boolean);
-        }
-
-        function displayLyrics() {
-            const lyricsDiv = document.getElementById('lyrics');
-            lyricsDiv.innerHTML = lyrics.map(l => `<p>${l.text}</p>`).join("");
-            highlightLine(true);
-        }
-
-        function startLyrics() {
-            startTime = Date.now();
-            firstLyricDelay = false; // Allow scrolling now
-            updateLyrics();
-        }
-
-        function updateLyrics() {
-            if (currentLine >= lyrics.length) return;
-            const elapsed = (Date.now() - startTime) / 1000;
-            if (elapsed >= lyrics[currentLine].time) {
-                highlightLine();
-                currentLine++;
-            }
-            requestAnimationFrame(updateLyrics);
-        }
-
-        function highlightLine(initial = false) {
-            const lyricsDiv = document.getElementById('lyrics');
-            const lines = lyricsDiv.getElementsByTagName("p");
-
-            for (let i = 0; i < lines.length; i++) {
-                lines[i].classList.remove("highlight", "past");
-                if (i < currentLine) {
-                    lines[i].classList.add("past"); // Previous lyrics turn gray
-                } else if (i === currentLine) {
-                    lines[i].classList.add("highlight"); // Current lyric turns green
-                }
-            }
-
-            // Auto-scroll only after the first lyric has been shown for a few seconds
-            if (!initial && !firstLyricDelay && lines[currentLine]) {
-                const container = document.getElementById("lyrics-container");
-                const scrollPosition = lines[currentLine].offsetTop - container.clientHeight / 2 + lines[currentLine].clientHeight / 2;
-
-                container.scrollTo({ top: scrollPosition, behavior: "smooth" });
-            }
-        }
-
-        // Load LRC file when the page loads
-        loadLRC();
-    </script>
-
-</body>
-</html>
+    <div id="l
