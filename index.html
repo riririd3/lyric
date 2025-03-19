@@ -32,26 +32,42 @@
       font-weight: bold;
       margin-bottom: 20px;
     }
+    #lyrics-container {
+      height: 300px; /* Fixed height for the lyrics container */
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     #lyrics {
       font-size: 24px;
       text-align: center;
-      margin: 20px;
-      height: 300px; /* Increased height to accommodate more lines */
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      line-height: 1.6; /* Adjust line height for smoother transitions */
     }
     #lyrics .line {
-      opacity: 0.5;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      transform: translateY(20px); /* Start slightly below */
+      opacity: 0.3;
+      transition: opacity 0.3s ease, font-size 0.3s ease;
     }
     #lyrics .highlight {
       opacity: 1;
-      color: #1db954;
+      font-size: 32px; /* Larger font size for the current line */
       font-weight: bold;
-      transform: translateY(0); /* Move to normal position */
+      color: #1db954; /* Spotify-like green color */
+    }
+    #click-to-start {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+    #click-to-start.hidden {
+      opacity: 0;
+      pointer-events: none; /* Disable clicks after fading out */
     }
     #audio-player { /* Hide the audio player */
       display: none;
@@ -61,8 +77,11 @@
 <body>
   <div id="container">
     <img id="album-art" src="images/elma.jpg" alt="Album Art">
-    <div id="title">Yorushika - Aruku</div>
-    <div id="lyrics">Click anywhere to start</div>
+    <div id="title">Yorushika - Walk</div>
+    <div id="lyrics-container">
+      <div id="click-to-start">Click anywhere to start</div>
+      <div id="lyrics"></div>
+    </div>
   </div>
   <audio id="audio-player">
     <source src="songs/aruku.mp3" type="audio/mpeg">
@@ -115,7 +134,7 @@
         }
       }
 
-      // Display 3 previous, current, and 3 next lyrics
+      // Generate lyrics HTML
       let lyricsHTML = '';
       for (let i = currentIndex - 3; i <= currentIndex + 3; i++) {
         if (i >= 0 && i < lyrics.length) {
@@ -124,20 +143,34 @@
         }
       }
 
+      // Update lyrics content
       lyricsElement.innerHTML = lyricsHTML;
+
+      // Smooth scroll to center the current line
+      const container = document.getElementById('lyrics-container');
+      const currentLine = lyricsElement.querySelector('.highlight');
+      if (currentLine) {
+        const lineOffset = currentLine.offsetTop;
+        const containerHeight = container.clientHeight;
+        const scrollTo = lineOffset - containerHeight / 2 + currentLine.clientHeight / 2;
+        lyricsElement.style.transform = `translateY(${-scrollTo}px)`;
+      }
     }
 
     // Main function
     let lyrics;
     async function main() {
-      lyrics = await loadLyrics();
+      lyrics = await loadLyrics(); // Preload lyrics
 
       const audioPlayer = document.getElementById('audio-player');
+      const clickToStart = document.getElementById('click-to-start');
 
       // Start playback when the user clicks anywhere on the screen
       document.body.addEventListener('click', () => {
-        audioPlayer.play();
-        document.getElementById('lyrics').innerText = 'Loading...'; // Update initial text
+        if (audioPlayer.paused) {
+          audioPlayer.play();
+          clickToStart.classList.add('hidden'); // Fade out the "Click to start" message
+        }
       });
 
       // Sync lyrics with audio playback
