@@ -37,7 +37,7 @@
             font-size: 24px; 
             line-height: 1.8; 
             margin: 5px 0; 
-            transition: color 0.3s ease-in-out; 
+            transition: color 0.3s ease-in-out, opacity 0.3s ease-in-out; 
             opacity: 0.5; /* Dim by default */
         }
         .highlight { 
@@ -62,6 +62,7 @@
         let lyrics = [];
         let currentLine = 0;
         let startTime = 0;
+        let firstLyricDelay = true; // Prevents instant scrolling at the beginning
 
         function loadLRC() {
             fetch("lyrics.lrc")
@@ -69,7 +70,7 @@
                 .then(text => {
                     lyrics = parseLRC(text);
                     displayLyrics();
-                    startLyrics();
+                    setTimeout(startLyrics, 2000); // 2-second delay before scrolling starts
                 })
                 .catch(error => {
                     document.getElementById('lyrics').innerText = "Error loading lyrics.";
@@ -90,14 +91,12 @@
         function displayLyrics() {
             const lyricsDiv = document.getElementById('lyrics');
             lyricsDiv.innerHTML = lyrics.map(l => `<p>${l.text}</p>`).join("");
-
-            // Ensure the first lyric is properly shown
             highlightLine(true);
         }
 
         function startLyrics() {
             startTime = Date.now();
-            currentLine = 0;
+            firstLyricDelay = false; // Allow scrolling now
             updateLyrics();
         }
 
@@ -124,8 +123,8 @@
                 }
             }
 
-            // Auto-scroll only after the first lyric is played
-            if (!initial && lines[currentLine]) {
+            // Auto-scroll only after the first lyric has been shown for a few seconds
+            if (!initial && !firstLyricDelay && lines[currentLine]) {
                 const container = document.getElementById("lyrics-container");
                 const scrollPosition = lines[currentLine].offsetTop - container.clientHeight / 2 + lines[currentLine].clientHeight / 2;
 
