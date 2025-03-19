@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yorushika - Walk (Synced Lyrics)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: black;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #lyrics-container {
+            max-width: 600px;
+            margin: auto;
+            overflow: hidden;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .lyric {
+            font-size: 18px;
+            opacity: 0.3;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .active {
+            font-size: 22px;
+            font-weight: bold;
+            opacity: 1;
+            color: #1DB954;
+        }
+        audio {
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Yorushika - Walk (歩く)</h2>
+    
+    <div id="lyrics-container">
+        <div id="lyrics"></div>
+    </div>
+
+    <audio id="audio" controls>
+        <source src="ヨルシカ - 準透明少年 (MUSIC VIDEO) (1).mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const lyrics = [
+            { time: 0, text: "歩く 君はそれを望んだ" },
+            { time: 5, text: "雨の匂いは嫌いじゃない" },
+            { time: 10, text: "靴音が響く坂道を" },
+            { time: 15, text: "今日も僕は歩く" },
+            { time: 20, text: "風に吹かれて消えた" },
+            { time: 25, text: "君の言葉を思い出す" },
+        ];
+
+        const lyricsContainer = document.getElementById("lyrics");
+        const audio = document.getElementById("audio");
+
+        // Render lyrics
+        lyrics.forEach((line, index) => {
+            let div = document.createElement("div");
+            div.className = "lyric";
+            div.id = "line-" + index;
+            div.textContent = line.text;
+            lyricsContainer.appendChild(div);
+     
