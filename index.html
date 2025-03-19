@@ -53,7 +53,7 @@
         ];
 
         const lyricsContainer = document.getElementById("lyrics");
-        const audio = document.getElementById("audio");
+        let currentTime = 0;
 
         // Render lyrics in the container
         lyrics.forEach((line, index) => {
@@ -64,11 +64,11 @@
             lyricsContainer.appendChild(div);
         });
 
-        // Sync lyrics with audio playback
-        audio.addEventListener("timeupdate", () => {
+        // Function to update lyrics
+        function updateLyrics() {
             lyrics.forEach((line, index) => {
                 let lyricElement = document.getElementById("line-" + index);
-                if (audio.currentTime >= line.time) {
+                if (currentTime >= line.time) {
                     document.querySelectorAll(".lyric").forEach(el => el.classList.remove("active"));
                     lyricElement.classList.add("active");
 
@@ -76,7 +76,14 @@
                     lyricsContainer.scrollTop = lyricElement.offsetTop - lyricsContainer.clientHeight / 2;
                 }
             });
-        });
+
+            currentTime++;
+        }
+
+        // Start lyric animation when the page loads
+        window.onload = () => {
+            setInterval(updateLyrics, 1000);
+        };
     </script>
 
 </body>
