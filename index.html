@@ -20,10 +20,18 @@
       font-size: 24px;
       text-align: center;
       margin: 20px;
-      height: 100px;
+      height: 150px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    #lyrics .line {
+      opacity: 0.5;
+      transition: opacity 0.3s ease;
     }
     #lyrics .highlight {
+      opacity: 1;
       color: #1db954;
       font-weight: bold;
     }
@@ -57,18 +65,28 @@
       return lyrics;
     }
 
-    // Highlight the current lyric
+    // Display the current, previous, and next lyrics
     function updateLyrics(lyrics, currentTime) {
       const lyricsElement = document.getElementById('lyrics');
-      let currentLyric = '';
+      let currentIndex = 0;
 
+      // Find the current lyric index
       for (let i = 0; i < lyrics.length; i++) {
         if (currentTime >= lyrics[i].time) {
-          currentLyric = lyrics[i].text;
+          currentIndex = i;
         }
       }
 
-      lyricsElement.innerHTML = currentLyric ? `<span class="highlight">${currentLyric}</span>` : '';
+      // Display previous, current, and next lyrics
+      let lyricsHTML = '';
+      for (let i = currentIndex - 1; i <= currentIndex + 1; i++) {
+        if (i >= 0 && i < lyrics.length) {
+          const className = i === currentIndex ? 'line highlight' : 'line';
+          lyricsHTML += `<div class="${className}">${lyrics[i].text}</div>`;
+        }
+      }
+
+      lyricsElement.innerHTML = lyricsHTML;
     }
 
     // Simulate time progression
