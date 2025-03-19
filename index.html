@@ -1,58 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify-Style Synced Lyrics</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background: black; 
-            color: white; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            overflow: hidden;
-        }
-        #lyrics-container { 
-            width: 90%; 
-            max-width: 600px; 
-            height: 60vh; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            text-align: center; 
-            position: relative; 
-            padding-top: 30vh; /* Push lyrics down so first one is visible */
-        }
-        #lyrics { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            transition: transform 0.5s ease-in-out; 
-        }
-        #lyrics p { 
-            font-size: 24px; 
-            line-height: 1.8; 
-            margin: 5px 0; 
-            transition: color 0.3s ease-in-out, opacity 0.3s ease-in-out; 
-            opacity: 0.5; /* Dim by default */
-        }
-        .highlight { 
-            color: #1DB954; 
-            font-size: 32px; 
-            font-weight: bold; 
-            opacity: 1; /* Fully visible */
-        }
-        .past { 
-            color: #888; 
-            opacity: 0.7; /* Slightly dim */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synced Lyrics Player</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #lyrics {
+      font-size: 24px;
+      text-align: center;
+      margin: 20px;
+      height: 100px;
+      overflow: hidden;
+    }
+    #lyrics .highlight {
+      color: #1db954;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+  <div id="lyrics">Loading lyrics...</div>
 
-    <div id="l
+  <script>
+    // Load and parse the .lrc file
+    async function loadLyrics() {
+      const response = await fetch('lyrics.lrc');
+      const text = await response.text();
+      return parseLRC(text);
+    }
+
+    // Parse the .lrc file into an array of { time, text } objects
+    function parseLRC(lrcText) {
+      const lines = lrcText.split('\n');
+      const lyrics = [];
+      lines.forEach(line => {
+        const match = line.match(/^\[(\d{2}):(\d{2}\.\d{2})\](.*)/);
+        if (match) {
+          const minutes = parseFloat(match[1]);
+          const seconds = parseFloat(match[2]);
+          const time = minutes * 60 + seconds;
+          const text = match[3].trim();
+          lyrics.push({ time, text });
+        }
+      });
+      return lyrics;
+    }
+
+    // Highlight the current lyric
+    function updateLyrics(lyrics, currentTime) {
+      const lyricsElement = document.getElementById('lyrics');
+      let currentLyric = '';
+
+      for (let i = 0; i < lyrics.length; i++) {
+        if (currentTime >= lyrics[i].time) {
+          currentLyric = lyrics[i].text;
+        }
+      }
+
+      lyricsElement.innerHTML = currentLyric ? `<span class="highlight">${currentLyric}</span>` : '';
+    }
+
+    // Simulate time progression
+    function startLyrics(lyrics) {
+      let startTime = Date.now();
+      const update = () => {
+        const currentTime = (Date.now() - startTime) / 1000; // Convert to seconds
+        updateLyrics(lyrics, currentTime);
+        requestAnimationFrame(update);
+      };
+      update();
+    }
+
+    // Main function
+    async function main() {
+      const lyrics = await loadLyrics();
+      startLyrics(lyrics); // Auto-start lyrics synchronization
+    }
+
+    main();
+  </script>
+</body>
+</html>
