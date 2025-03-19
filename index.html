@@ -36,14 +36,13 @@
       font-weight: bold;
     }
     #audio-player {
-      display: none;
-      margin-top: 20px;
+      display: none; /* Hide the audio player */
     }
   </style>
 </head>
 <body>
   <div id="lyrics">Loading lyrics...</div>
-  <audio id="audio-player" controls>
+  <audio id="audio-player">
     <source src="songs/aruku.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
   </audio>
@@ -51,7 +50,7 @@
   <script>
     // Load and parse the .lrc file
     async function loadLyrics() {
-      const response = await fetch('lyrics.lrc');
+      const response = await fetch('lyrics/aruku.lrc');
       const text = await response.text();
       return parseLRC(text);
     }
@@ -103,6 +102,11 @@
       lyrics = await loadLyrics();
 
       const audioPlayer = document.getElementById('audio-player');
+
+      // Autoplay the audio when the page loads
+      audioPlayer.play().catch(error => {
+        console.log('Autoplay failed. User interaction is required to play audio.');
+      });
 
       // Sync lyrics with audio playback
       const update = () => {
