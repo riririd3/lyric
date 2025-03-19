@@ -15,7 +15,6 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      cursor: pointer; /* Indicate that the screen is clickable */
     }
     #container {
       text-align: center;
@@ -25,7 +24,7 @@
       height: 200px;
       border-radius: 10px;
       margin-bottom: 20px;
-      object-fit: cover; /* Ensure the image fits nicely */
+      object-fit: cover;
     }
     #title {
       font-size: 28px;
@@ -33,49 +32,52 @@
       margin-bottom: 20px;
     }
     #lyrics-container {
-      height: 300px; /* Fixed height for the lyrics container */
+      height: 250px;
+      width: 90%;
+      max-width: 600px;
       overflow: hidden;
-      position: relative;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      position: relative;
     }
     #lyrics {
       font-size: 18px;
       text-align: center;
-      transition: transform 0.5s ease, opacity 0.5s ease;
-      line-height: 1.6; /* Adjust line height for smoother transitions */
+      line-height: 1.8;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth easing */
     }
-    #lyrics .line {
-      opacity: 0.3;
-      transition: opacity 0.3s ease, font-size 0.3s ease;
+    .line {
+      opacity: 0.4;
+      transition: opacity 0.5s ease, font-size 0.5s ease;
+      font-size: 18px;
     }
-    #lyrics .highlight {
+    .highlight {
       opacity: 1;
-      font-size: 24px; /* Larger font size for the current line */
-      font-weight: bold;
-      color: #1db954; /* Spotify-like green color */
-    }
-    #click-to-start {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(18, 18, 18, 0.9); /* Semi-transparent black background */
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-size: 24px;
-      opacity: 1;
+      font-weight: bold;
+      color: #1db954;
+    }
+    #start-button {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #1db954;
+      color: white;
+      font-size: 20px;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
       transition: opacity 0.5s ease;
-      z-index: 10; /* Ensure it's on top of everything */
+      z-index: 10;
     }
-    #click-to-start.hidden {
+    #start-button.hidden {
       opacity: 0;
-      pointer-events: none; /* Disable clicks after fading out */
+      pointer-events: none;
     }
-    #audio-player { /* Hide the audio player */
+    #audio-player {
       display: none;
     }
   </style>
@@ -88,20 +90,17 @@
       <div id="lyrics"></div>
     </div>
   </div>
-  <div id="click-to-start">Click anywhere to start</div>
+  <button id="start-button">Click to Start</button>
   <audio id="audio-player">
     <source src="songs/aruku.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
   </audio>
 
   <script>
-    // Load and parse the .lrc file
     async function loadLyrics() {
       try {
         const response = await fetch('lyrics/aruku.lrc');
-        if (!response.ok) {
-          throw new Error('Failed to load lyrics file');
-        }
+        if (!response.ok) throw new Error('Failed to load lyrics file');
         const text = await response.text();
         return parseLRC(text);
       } catch (error) {
@@ -111,7 +110,6 @@
       }
     }
 
-    // Parse the .lrc file into an array of { time, text } objects
     function parseLRC(lrcText) {
       const lines = lrcText.split('\n');
       const lyrics = [];
@@ -128,70 +126,50 @@
       return lyrics;
     }
 
-    // Display the current, previous, and next lyrics
     function updateLyrics(lyrics, currentTime) {
       const lyricsElement = document.getElementById('lyrics');
       let currentIndex = 0;
 
-      // Find the current lyric index
       for (let i = 0; i < lyrics.length; i++) {
         if (currentTime >= lyrics[i].time) {
           currentIndex = i;
         }
       }
 
-      // Generate lyrics HTML
       let lyricsHTML = '';
-      for (let i = currentIndex - 3; i <= currentIndex + 3; i++) {
-        if (i >= 0 && i < lyrics.length) {
-          const className = i === currentIndex ? 'line highlight' : 'line';
-          lyricsHTML += `<div class="${className}">${lyrics[i].text}</div>`;
-        }
-      }
+      lyrics.forEach((line, index) => {
+        const className = index === currentIndex ? 'line highlight' : 'line';
+        lyricsHTML += `<div class="${className}" data-index="${index}">${line.text}</div>`;
+      });
 
-      // Update lyrics content
       lyricsElement.innerHTML = lyricsHTML;
 
-      // Smooth scroll to center the current line
-      const container = document.getElementById('lyrics-container');
       const currentLine = lyricsElement.querySelector('.highlight');
       if (currentLine) {
-        const lineOffset = currentLine.offsetTop;
-        const containerHeight = container.clientHeight;
-        const scrollTo = lineOffset - containerHeight / 2 + currentLine.clientHeight / 2;
-        lyricsElement.style.transform = `translateY(${-scrollTo}px)`;
+        const scrollAmount = currentLine.offsetTop - lyricsElement.offsetTop;
+        lyricsElement.style.transform = `translateY(${-scrollAmount}px)`;
       }
     }
 
-    // Main function
-    let lyrics;
     async function main() {
-      lyrics = await loadLyrics(); // Preload lyrics
-
+      const lyrics = await loadLyrics();
       const audioPlayer = document.getElementById('audio-player');
-      const clickToStart = document.getElementById('click-to-start');
+      const startButton = document.getElementById('start-button');
 
-      // Start playback when the user clicks anywhere on the screen
-      clickToStart.addEventListener('click', function startPlayback() {
+      startButton.addEventListener('click', function () {
         if (audioPlayer.paused) {
-      audioPlayer.play();
-      clickToStart.classList.add('hidden'); // Fade out the "Click to start" message
-      clickToStart.removeEventListener('click', startPlayback); // Remove the event listener after first click
-      }
+          audioPlayer.play();
+          startButton.classList.add('hidden');
+          setTimeout(() => startButton.remove(), 500);
+        }
       });
 
-
-      // Sync lyrics with audio playback
       const update = () => {
-        const currentTime = audioPlayer.currentTime; // Get current playback time
-        updateLyrics(lyrics, currentTime);
+        updateLyrics(lyrics, audioPlayer.currentTime);
         requestAnimationFrame(update);
       };
 
-      // Start syncing lyrics when the audio starts playing
-      audioPlayer.addEventListener('play', () => {
-        update();
-      });
+      audioPlayer.addEventListener('play', update);
     }
 
     main();
