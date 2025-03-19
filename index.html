@@ -172,12 +172,14 @@
       const clickToStart = document.getElementById('click-to-start');
 
       // Start playback when the user clicks anywhere on the screen
-      clickToStart.addEventListener('click', () => {
+      clickToStart.addEventListener('click', function startPlayback() {
         if (audioPlayer.paused) {
-          audioPlayer.play();
-          clickToStart.classList.add('hidden'); // Fade out the "Click to start" message
-        }
+      audioPlayer.play();
+      clickToStart.classList.add('hidden'); // Fade out the "Click to start" message
+      clickToStart.removeEventListener('click', startPlayback); // Remove the event listener after first click
+      }
       });
+
 
       // Sync lyrics with audio playback
       const update = () => {
