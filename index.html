@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify-Style Synced Lyrics</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: black; color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #lyrics-container { width: 90%; max-width: 600px; height: 60vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        #lyrics p { font-size: 24px; line-height: 1.8; transition: color 0.3s ease-in-out; }
+        .highlight { color: #1DB954; font-size: 28px; font-weight: bold; }
+        .past { color: #888; }
+    </style>
+</head>
+<body>
+
+    <div id="lyrics-container">
+        <div id="lyrics">Loading lyrics...</div>
+    </div>
+
+    <script>
+        let lyrics = [];
+        let currentLine = 0;
+        let startTime = 0;
+
+        function loadLRC() {
+            fetch("lyrics.lrc")
+                .then(response => response.text())
+                .then(text => {
+                    lyrics = parseLRC(text);
+                    displayLyrics();
+                    startLyrics();
+                })
+                .catch(error => {
+                    document.getElementById('lyrics').innerText = "Error loading lyrics.";
+                    console.error("Error loading LRC file:", error);
+                });
+        }
+
+        function parseLRC(text) {
+            return text.trim().split("\n").map(line => {
+                const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+                if (match) {
+                    return { time: parseFloat(match[1]) * 60 + parseFloat(match[2]), text: match[3].trim() };
+                }
+                return null;
+            }).filter(Boolean);
+        }
+
+        function displayLyrics() {
+            const lyricsDiv = document.getElementById('lyrics');
+            lyricsDiv.innerHTML = lyrics.map(l => `<p>${l.text}</p>`).join("");
+        }
+
+        function startLyrics() {
+            startTime = Date.now();
+            currentLine = 0;
+            updateLyrics();
+        }
+
+        function updateLyrics() {
+            if (currentLine >= lyrics.length) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            if (elapsed >= lyrics[currentLine].time) {
+                highlightLine();
+                currentLine++;
+            }
+            requestAnimationFrame(updateLyrics);
+        }
+
+        function highlightLine() {
+            const lyricsDiv = document.getElementById('lyrics');
+            const lines = lyricsDiv.getElementsByTagName("p");
+
+            for (let i = 0; i < lines.length; i++) {
+                lines[i].classList.remove("highlight", "past");
+                if (i < currentLine) {
+                    lines[i].classList.add("past"); // Previous lyrics turn gray
+                } else if (i === currentLine) {
+                    lines[i].classList.add("highlight"); // Current lyric turns green
+                }
+            }
+
+            // Auto-scroll
+            const container = document.getElementById("lyrics-container");
+            const lineHeight = lines[currentLine]?.offsetHeight || 30;
+            container.scrollTo({ top: lineHeight * currentLine - container.clientHeight / 2, behavior: "smooth" });
+        }
+
+        // Load LRC file when the page loads
+        loadLRC();
+    </script>
+
+</body>
+</html>
