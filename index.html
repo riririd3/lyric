@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Synced Lyrics Player with YouTube</title>
+  <title>Synced Lyrics Player with Local Audio</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -35,14 +35,18 @@
       color: #1db954;
       font-weight: bold;
     }
-    #player {
-      display: none; /* Hide the YouTube video player */
+    #audio-player {
+      display: none;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
   <div id="lyrics">Loading lyrics...</div>
-  <div id="player"></div> <!-- YouTube IFrame will be loaded here -->
+  <audio id="audio-player" controls>
+    <source src="songs/aruku.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
 
   <script>
     // Load and parse the .lrc file
@@ -93,53 +97,24 @@
       lyricsElement.innerHTML = lyricsHTML;
     }
 
-    // YouTube IFrame API
-    let player;
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('player', {
-        height: '0', // Hide the player
-        width: '0',
-        videoId: 'rjrres2QTyk', // Replace with your YouTube video ID
-        events: {
-          'onReady': onPlayerReady,
-          'onStateChange': onPlayerStateChange
-        }
-      });
-    }
-
-    // When the player is ready, start syncing lyrics
-    function onPlayerReady(event) {
-      event.target.playVideo(); // Autoplay the video
-      startLyrics(lyrics); // Start syncing lyrics
-    }
-
-    // Sync lyrics with YouTube playback
-    function startLyrics(lyrics) {
-      const update = () => {
-        const currentTime = player.getCurrentTime(); // Get current playback time
-        updateLyrics(lyrics, currentTime);
-        requestAnimationFrame(update);
-      };
-      update();
-    }
-
-    // Handle player state changes (optional)
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.PLAYING) {
-        console.log('Video is playing');
-      }
-    }
-
-    // Load the YouTube IFrame API script
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
     // Main function
     let lyrics;
     async function main() {
       lyrics = await loadLyrics();
+
+      const audioPlayer = document.getElementById('audio-player');
+
+      // Sync lyrics with audio playback
+      const update = () => {
+        const currentTime = audioPlayer.currentTime; // Get current playback time
+        updateLyrics(lyrics, currentTime);
+        requestAnimationFrame(update);
+      };
+
+      // Start syncing lyrics when the audio starts playing
+      audioPlayer.addEventListener('play', () => {
+        update();
+      });
     }
 
     main();
