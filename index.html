@@ -44,15 +44,16 @@
     <div id="lyrics-container">
         <div id="lyrics"></div>
     </div>
-    
+
     <script>
         const lyricsContainer = document.getElementById("lyrics");
-        const audio = document.getElementById("audio");
         let lyricsData = [];
+        let currentTime = 0;
+        let interval;
 
         // Load .lrc file
         async function loadLRC() {
-            const response = await fetch("8.歩く.lrc"); // Ensure the .lrc file is in the same directory
+            const response = await fetch("lyrics.lrc"); // Ensure the .lrc file is in the same directory
             const text = await response.text();
             parseLRC(text);
         }
@@ -72,6 +73,7 @@
             }).filter(line => line); // Remove empty lines
 
             renderLyrics();
+            startLyrics();
         }
 
         // Render lyrics
@@ -86,9 +88,8 @@
             });
         }
 
-        // Sync lyrics with song
+        // Sync lyrics without audio
         function updateLyrics() {
-            const currentTime = audio.currentTime;
             lyricsData.forEach((line, index) => {
                 let lyricElement = document.getElementById("line-" + index);
                 if (line.time <= currentTime) {
@@ -99,13 +100,19 @@
                     lyricsContainer.scrollTop = lyricElement.offsetTop - lyricsContainer.clientHeight / 2;
                 }
             });
+
+            currentTime += 0.5; // Increment time (simulating audio playback)
+        }
+
+        // Auto-start lyrics
+        function startLyrics() {
+            currentTime = 0;
+            if (interval) clearInterval(interval);
+            interval = setInterval(updateLyrics, 500); // Updates every 0.5 sec
         }
 
         // Load lyrics on page load
-        window.onload = () => {
-            loadLRC();
-            audio.addEventListener("timeupdate", updateLyrics);
-        };
+        window.onload = loadLRC;
     </script>
 
 </body>
