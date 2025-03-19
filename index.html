@@ -35,10 +35,6 @@
             opacity: 1;
             color: #1DB954;
         }
-        audio {
-            width: 100%;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -49,19 +45,11 @@
         <div id="lyrics"></div>
     </div>
 
-    <audio id="audio" controls>
-        <source src="ヨルシカ - 準透明少年 (MUSIC VIDEO) (1).mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-
     <script>
         const lyrics = [
-            { time: 0, text: "歩く 君はそれを望んだ" },
-            { time: 5, text: "雨の匂いは嫌いじゃない" },
-            { time: 10, text: "靴音が響く坂道を" },
-            { time: 15, text: "今日も僕は歩く" },
-            { time: 20, text: "風に吹かれて消えた" },
-            { time: 25, text: "君の言葉を思い出す" }
+            { time: 0, text: "あの丘の前に君がいる" },
+            { time: 5, text: "その向こうには何が見える" },
+            { time: 10, text: "言葉ばかりが口を伝う" },
         ];
 
         const lyricsContainer = document.getElementById("lyrics");
