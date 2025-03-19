@@ -3,131 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yorushika - Walk (Synced Lyrics)</title>
+    <title>Synced Lyrics Viewer</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: black;
-            color: white;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-        #lyrics-container {
-            max-width: 600px;
-            margin: 20px auto;
-            height: 250px;
-            overflow-y: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            scroll-behavior: smooth; /* Smooth scrolling like Spotify */
-        }
-        .lyric {
-            font-size: 18px;
-            opacity: 0.3;
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            margin: 5px 0;
-            transform: scale(0.9);
-        }
-        .active {
-            font-size: 24px;
-            font-weight: bold;
-            opacity: 1;
-            color: #1DB954;
-            transform: scale(1);
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        #lyrics { font-size: 24px; height: 100px; overflow: hidden; }
+        .highlight { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>Yorushika - Walk (歩く)</h2>
-
-    <div id="lyrics-container">
-        <div id="lyrics"></div>
-    </div>
+    <h2>Synced Lyrics Viewer</h2>
+    <div id="lyrics">Loading lyrics...</div>
 
     <script>
-        const lyricsContainer = document.getElementById("lyrics");
-        let lyricsData = [];
-        let currentTime = 0;
-        let interval;
+        let lyrics = [];
+        let currentLine = 0;
+        let startTime = 0;
 
-        // Load .lrc file
-        async function loadLRC() {
-            try {
-                const response = await fetch("lyrics.lrc");
-                if (!response.ok) throw new Error("Failed to load lyrics");
-                const text = await response.text();
-                parseLRC(text);
-            } catch (error) {
-                console.error("Error loading LRC file:", error);
-            }
+        function loadLRC() {
+            fetch("lyrics.lrc")
+                .then(response => response.text())
+                .then(text => {
+                    lyrics = parseLRC(text);
+                    displayLyrics();
+                    startLyrics();
+                })
+                .catch(error => {
+                    document.getElementById('lyrics').innerText = "Error loading lyrics.";
+                    console.error("Error loading LRC file:", error);
+                });
         }
 
-        // Parse .lrc file
         function parseLRC(text) {
-            const lines = text.split("\n");
-            lyricsData = lines.map(line => {
+            return text.trim().split("\n").map(line => {
                 const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
                 if (match) {
-                    const minutes = parseInt(match[1]);
-                    const seconds = parseFloat(match[2]);
-                    const time = minutes * 60 + seconds;
-                    const text = match[3].trim();
-                    return { time, text };
+                    return { time: parseFloat(match[1]) * 60 + parseFloat(match[2]), text: match[3].trim() };
                 }
-            }).filter(line => line);
-
-            renderLyrics();
-            startLyrics();
+                return null;
+            }).filter(Boolean);
         }
 
-        // Render lyrics
-        function renderLyrics() {
-            lyricsContainer.innerHTML = "";
-            lyricsData.forEach((line, index) => {
-                let div = document.createElement("div");
-                div.className = "lyric";
-                div.id = "line-" + index;
-                div.textContent = line.text;
-                lyricsContainer.appendChild(div);
-            });
+        function displayLyrics() {
+            const lyricsDiv = document.getElementById('lyrics');
+            lyricsDiv.innerHTML = lyrics.map(l => `<p>${l.text}</p>`).join("");
         }
 
-        // Sync lyrics with smooth scrolling
-        function updateLyrics() {
-            if (lyricsData.length === 0) return;
-
-            let nextIndex = lyricsData.findIndex(line => line.time > currentTime);
-            let activeIndex = nextIndex === -1 ? lyricsData.length - 1 : nextIndex - 1;
-
-            document.querySelectorAll(".lyric").forEach(el => el.classList.remove("active"));
-            if (activeIndex >= 0) {
-                let activeLyric = document.getElementById(`line-${activeIndex}`);
-                activeLyric.classList.add("active");
-
-                // Auto-scroll to keep the active lyric in the center
-                lyricsContainer.scrollTo({
-                    top: activeLyric.offsetTop - lyricsContainer.clientHeight / 2,
-                    behavior: "smooth"
-                });
-            }
-
-            currentTime += 0.5; // Simulate audio playback timing
-        }
-
-        // Auto-start lyrics
         function startLyrics() {
-            if (lyricsData.length === 0) return;
-            currentTime = 0;
-            if (interval) clearInterval(interval);
-            interval = setInterval(updateLyrics, 500); // Update every 0.5 sec
+            startTime = Date.now();
+            currentLine = 0;
+            updateLyrics();
         }
 
-        // Load lyrics on page load
-        window.onload = loadLRC;
+        function updateLyrics() {
+            if (currentLine >= lyrics.length) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            if (elapsed >= lyrics[currentLine].time) {
+                highlightLine();
+                currentLine++;
+            }
+            requestAnimationFrame(updateLyrics);
+        }
+
+        function highlightLine() {
+            const lyricsDiv = document.getElementById('lyrics');
+            const lines = lyricsDiv.getElementsByTagName("p");
+            for (let i = 0; i < lines.length; i++) {
+                lines[i].classList.toggle("highlight", i === currentLine);
+            }
+        }
+
+        // Load LRC file when the page loads
+        loadLRC();
     </script>
 
 </body>
