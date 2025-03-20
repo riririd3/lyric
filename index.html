@@ -87,6 +87,9 @@
       opacity: 0;
       pointer-events: none;
     }
+    #audio-player {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -98,7 +101,10 @@
       <div id="lyrics"></div>
     </div>
   </div>
-  <iframe id="spotify-player" src="https://open.spotify.com/embed/track/6svbcQPHZFH58Tjr14NzT2" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media" style="display: none;"></iframe>
+  <audio id="audio-player" controls>
+    <source src="songs/aruku.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
 
   <script>
     async function loadLyrics() {
@@ -157,7 +163,7 @@
 
     async function main() {
       const lyrics = await loadLyrics();
-      const audioPlayer = document.getElementById('spotify-player');
+      const audioPlayer = document.getElementById('audio-player');
       const startButton = document.getElementById('start-button');
 
       startButton.addEventListener('click', function () {
